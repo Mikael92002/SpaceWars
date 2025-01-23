@@ -20,6 +20,9 @@ public class Galaga extends Game {
     public FitViewport viewport;
     public BitmapFont welcomeFont;
     public BitmapFont pressFont;
+    public BitmapFont startFont;
+    FreeTypeFontGenerator generatorTwo;
+    FreeTypeFontGenerator.FreeTypeFontParameter parameterTwo;
     /*public Texture star;
     public Array<Sprite> starArray;*/
 
@@ -40,6 +43,13 @@ public class Galaga extends Game {
         pressFont.setUseIntegerPositions(false);
         pressFont.getData().setScale(viewport.getWorldHeight()/Gdx.graphics.getHeight());
 
+        generatorTwo = new FreeTypeFontGenerator(Gdx.files.internal("ARCADECLASSIC.TTF"));
+        parameterTwo = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = 12;
+        startFont = generator.generateFont(parameter);
+        startFont.setUseIntegerPositions(false);
+        startFont.getData().setScale(2f*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
+        startFont.getData().markupEnabled = true;
         /*star = new Texture(Gdx.files.internal("star.png"));
         starArray = new Array<>();*/
 

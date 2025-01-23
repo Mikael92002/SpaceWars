@@ -2,6 +2,7 @@ package com.badlogic.Galaga;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -18,7 +19,8 @@ public class MainMenuScreen implements Screen {
     private float shipSpeedY = 0.1f;
     private float shipSpeedX = 0f;
     private Texture ship;
-    Sprite shipSprite;
+    private Sprite shipSprite;
+    Music music;
 
     public MainMenuScreen(final Galaga game) {
         this.game = game;
@@ -29,11 +31,14 @@ public class MainMenuScreen implements Screen {
         shipSprite.setSize(1,1);
         shipSprite.setX(game.viewport.getWorldWidth()/2);
         shipSprite.setY(game.viewport.getWorldHeight()/2);
+        music = Gdx.audio.newMusic(Gdx.files.internal("ambiance.mp3"));
+        music.setLooping(true);
+        music.play();
     }
 
     @Override
     public void show() {
-
+    music.play();
     }
 
     @Override
@@ -64,7 +69,8 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void dispose() {
-
+    music.dispose();
+    star.dispose();
     }
 
     public void logic() {
@@ -126,6 +132,7 @@ public class MainMenuScreen implements Screen {
 
         if (Gdx.input.isTouched()) {
             game.setScreen(new GameScreen(game));
+            music.stop();
             dispose();
         }
         game.batch.end();
