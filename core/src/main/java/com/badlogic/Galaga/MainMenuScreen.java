@@ -1,6 +1,7 @@
 package com.badlogic.Galaga;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
@@ -127,8 +128,9 @@ public class MainMenuScreen implements Screen {
             stars.draw(game.batch);
         }
         shipSprite.draw(game.batch);
-        game.welcomeFont.draw(game.batch, "WELCOME TO GALAGA!", 0.3f, worldHeight / 2);
-        game.pressFont.draw(game.batch, "Press anywhere to begin", 1.5f, worldHeight / 2 - 2);
+        game.welcomeFont.draw(game.batch, "WELCOME  TO", 1.7f, worldHeight / 2);
+        game.spaceWars.draw(game.batch, "[RED]S[][GREEN]P[][YELLOW]A[][BLUE]C[][RED]E[][GREEN]W[][YELLOW]A[][BLUE]R[][RED]S[][GREEN]![]",1.15f,worldHeight/2-0.8f);
+        game.pressFont.draw(game.batch, "Press anywhere to begin", 1.5f, worldHeight / 2 - 2f);
 
         if (Gdx.input.isTouched()) {
             game.setScreen(new GameScreen(game));
