@@ -5,10 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -26,6 +24,7 @@ public class Galaga extends Game {
     public BitmapFont score;
     public BitmapFont endGameScore;
     public BitmapFont warlordHealthInfo;
+    public BitmapFont spaceWars;
     FreeTypeFontGenerator generatorTwo;
     FreeTypeFontGenerator.FreeTypeFontParameter parameterTwo;
     /*public Texture star;
@@ -45,9 +44,12 @@ public class Galaga extends Game {
         warlordHealthInfo = generator.generateFont(parameter);
         score = generator.generateFont(parameter);
         endGameScore = generator.generateFont(parameter);
+        spaceWars = generator.generateFont(parameter);
         viewport = new FitViewport(7.2f,12.8f);
 
         welcomeFont.setUseIntegerPositions(false);
+        spaceWars.setUseIntegerPositions(false);
+        spaceWars.getData().setScale(2.5f*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
         welcomeFont.getData().setScale(2f*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
         welcomeFont.setColor(Color.RED);
         pressFont.setUseIntegerPositions(false);
@@ -75,6 +77,7 @@ public class Galaga extends Game {
         startFont.getData().markupEnabled = true;
         gameOverFont.getData().markupEnabled = true;
         endGameScore.getData().markupEnabled = true;
+        spaceWars.getData().markupEnabled = true;
 
         /*star = new Texture(Gdx.files.internal("star.png"));
         starArray = new Array<>();*/

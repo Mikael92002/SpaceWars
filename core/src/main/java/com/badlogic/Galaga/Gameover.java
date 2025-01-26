@@ -1,12 +1,9 @@
 package com.badlogic.Galaga;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class Gameover implements Screen {
@@ -42,7 +39,7 @@ public class Gameover implements Screen {
         game.batch.draw(game.background,0,0,worldWidth,worldHeight);
     game.gameOverFont.draw(game.batch, "[RED]G[][GREEN]A[][YELLOW]M[][BLUE]E[]\n[GREEN]O[][YELLOW]V[][RED]E[][BLUE]R[][GREEN]![]",2f,worldHeight/2+1);
     game.tryAgainFont.draw(game.batch, "PRESS ANYWHERE  TO  TRY AGAIN",1.3f,worldHeight/2-2);
-    game.endGameScore.draw(game.batch, "YOUR SCORE WAS [RED] " + score + "[]", 1.85f,worldHeight/2-1.25f);
+    game.endGameScore.draw(game.batch, "YOUR SCORE WAS [RED] " + score + "[]", 1.85f,worldHeight/2-1.5f);
 
     if(Gdx.input.isTouched()){
         game.setScreen(new GameScreen(this.game));

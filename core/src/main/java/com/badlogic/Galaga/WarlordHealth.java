@@ -5,8 +5,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.utils.Array;
 
-import java.awt.*;
-
 public class WarlordHealth {
     final Galaga game;
     private Texture bossHealthOne;
