@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Colors;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
@@ -64,9 +65,6 @@ public class GameScreen implements Screen {
     private int warlordHealth = 5;
     boolean warlordHit = false;
     WarlordHealth warlordHealthGraphic;
-
-
-
     //collision:
     HashMap<Sprite, Rectangle> laserRec;
     HashMap<Alien, Rectangle> enemyRec;
@@ -156,7 +154,7 @@ public class GameScreen implements Screen {
                 alienCreationTimer = 0;
                 createAlien();
                 float chance = MathUtils.random(0, 1f);
-                if (chance < 0.25f && score<=1300 && enemyArray.size<=3) {
+                if (chance < 0.25f && !bossAlive && enemyArray.size<=3) {
                     createAlien();
                     createAlien();
                 }
@@ -200,7 +198,7 @@ public class GameScreen implements Screen {
                 float heroHeight = heroLaser.getHeight();
                 float heroWidth = heroLaser.getWidth();
 
-                heroLaser.translateY(5f * delta);
+                heroLaser.translateY(10f * delta);
                 Rectangle laserRectangle = laserRec.get(heroLaser);
                 if (laserRectangle != null) {
                     laserRectangle.set(heroLaser.getX(), heroLaser.getY(), heroLaser.getWidth(), heroLaser.getHeight());
@@ -455,6 +453,7 @@ public class GameScreen implements Screen {
         starSprite.setSize(starWidth, starHeight);
         starSprite.setX(MathUtils.random(0f, worldWidth - starWidth));
         starSprite.setY(worldHeight);
+        starSprite.setAlpha(0.5f);
         starArray.add(starSprite);
     }
 
