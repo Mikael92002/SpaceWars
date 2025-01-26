@@ -1,4 +1,10 @@
-# Galaga
+# SpaceWars
+
+Controls are:
+- Keyboard Up = Shoot
+- Keyboard Left = Move Left
+- Keyboard Right = Move Right
+
 
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
 
