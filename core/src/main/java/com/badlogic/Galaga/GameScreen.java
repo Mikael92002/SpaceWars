@@ -52,6 +52,19 @@ public class GameScreen implements Screen {
     private boolean explosiveFlash = true;
     private float explosiveFlashTimer = 0f;
     private Sound destroySound;
+    //Health:
+    private PlayerHealth healthArray;
+    //alien:
+    private Sound alienLaserSound;
+    //Score
+    public int score = 0;
+    //AlienWarlord:
+    AlienWarlord alienWarlord = null;
+    boolean bossAlive = false;
+    private int warlordHealth = 5;
+    boolean warlordHit = false;
+    WarlordHealth warlordHealthGraphic;
+
 
 
     //collision:
@@ -90,6 +103,10 @@ public class GameScreen implements Screen {
         music.setVolume(0.5f);
         explodedArray = new Array<>();
         destroySound = Gdx.audio.newSound(Gdx.files.internal("destroySound.mp3"));
+        healthArray = new PlayerHealth(this.game);
+        alienLaserSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
+        warlordHealthGraphic = new WarlordHealth(this.game);
+
     }
 
     @Override
@@ -135,11 +152,11 @@ public class GameScreen implements Screen {
         if (gameTimer > 5f) {
             float delta = Gdx.graphics.getDeltaTime();
             alienCreationTimer += delta;
-            if (alienCreationTimer > 5f && enemyArray.size < 5) {
+            if (alienCreationTimer > 3f && enemyArray.size < 5) {
                 alienCreationTimer = 0;
                 createAlien();
-                float chance = MathUtils.random(0,1f);
-                if(chance<0.25f){
+                float chance = MathUtils.random(0, 1f);
+                if (chance < 0.25f && score<=1300 && enemyArray.size<=3) {
                     createAlien();
                     createAlien();
                 }
@@ -157,23 +174,27 @@ public class GameScreen implements Screen {
                 alien.addMoveTimer();
                 alien.addShotTime();
 
-                if(alien.getMoveTimer()>1f){
+                if (alien.getMoveTimer() > 1f) {
                     alien.setMoveTimer(0);
                     alien.randomizeSpeed();
                     alien.randomizeYSpeed();
                 }
-                if(alien.getShotTimer()>5f){
+                if (alien.getShotTimer() > 5f) {
                     alien.setShotTimer(0);
                     createAlienLaser(alien.getAlien());
+                    alienLaserSound.play();
                 }
-                alien.getAlien().setX(MathUtils.clamp(alien.getAlien().getX(),0,game.viewport.getWorldWidth()-alien.getAlien().getWidth()));
-                alien.getAlien().setY(MathUtils.clamp(alien.getAlien().getY(),worldHeight/2-alienWidth,worldHeight-alienWidth));
+                alien.getAlien().setX(MathUtils.clamp(alien.getAlien().getX(), 0, game.viewport.getWorldWidth() - alien.getAlien().getWidth()));
+                alien.getAlien().setY(MathUtils.clamp(alien.getAlien().getY(), worldHeight / 2 - alienWidth, worldHeight - alienWidth));
+
                 alien.getAlien().translateX(alien.getAlienXSpeed() * delta);
-                alien.getAlien().translateY(alien.getAlienYSpeed()*delta);
+                alien.getAlien().translateY(alien.getAlienYSpeed() * delta);
                 enemyRec.get(alien).set(alien.getAlien().getX(), alien.getAlien().getY(), alienWidth, alienHeight);
 
 
             }
+
+
             for (int i = heroLaserArr.size - 1; i >= 0; i--) {
                 Sprite heroLaser = heroLaserArr.get(i);
                 float heroHeight = heroLaser.getHeight();
@@ -196,33 +217,46 @@ public class GameScreen implements Screen {
                             explodedArray.add(new ExplosionTimer(enemyArray.get(j).getAlien()));
                             enemyArray.removeIndex(j);
                             laserRec.remove(heroLaser);
-
+                            score += 100;
                         }
+
+
                     }
+
+
 
                 }
                 if (heroLaser.getY() > worldHeight) {
                     heroLaserArr.removeIndex(i);
                 }
 
-            }
-
-            for(int i = enemyLaserArray.size-1;i>=0;i--){
-            Sprite alienLaserSprite = enemyLaserArray.get(i);
-
-            alienLaserSprite.translateY(-4f*delta);
-
-            Rectangle laserRectangle = enemyLaserRec.get(alienLaserSprite);
-            if(laserRectangle!=null){
-                laserRectangle.set(alienLaserSprite.getX(),alienLaserSprite.getY(),alienLaserSprite.getWidth(),alienLaserSprite.getHeight());
-            }
-
-            if(laserRectangle !=null){
-                if(laserRectangle.overlaps(shipRec)){
-                    enemyLaserArray.removeIndex(i);
-                    health--;
+                if(alienWarlord != null){
+                if(laserRec.get(heroLaser) != null){
+                    if(laserRec.get(heroLaser).overlaps(alienWarlord.getRectangle())){
+                        warlordHealth--;
+                        warlordHealthGraphic.remove();
+                        heroLaserArr.removeIndex(i);
+                    }
                 }
             }
+            }
+
+            for (int i = enemyLaserArray.size - 1; i >= 0; i--) {
+                Sprite alienLaserSprite = enemyLaserArray.get(i);
+
+                alienLaserSprite.translateY(-4f * delta);
+
+                Rectangle laserRectangle = enemyLaserRec.get(alienLaserSprite);
+                if (laserRectangle != null) {
+                    laserRectangle.set(alienLaserSprite.getX(), alienLaserSprite.getY(), alienLaserSprite.getWidth(), alienLaserSprite.getHeight());
+                }
+
+                if (laserRectangle != null) {
+                    if (laserRectangle.overlaps(shipRec)) {
+                        enemyLaserArray.removeIndex(i);
+                        health--;
+                    }
+                }
             }
 
             alienMovementTimer += delta;
@@ -233,6 +267,42 @@ public class GameScreen implements Screen {
             }
 
 
+        }
+        if(score % 2000 == 0 && score > 0 && !bossAlive){
+            alienWarlord = new AlienWarlord(this.game);
+            warlordHealth = 5;
+            warlordHealthGraphic = new WarlordHealth(this.game);
+        }
+        if (alienWarlord != null) {
+            if(warlordHealth<=0){
+                    alienWarlord.getSprite().setTexture(explosion);
+                    destroySound.play();
+                    score+=300;
+                    explodedArray.add(new ExplosionTimer(alienWarlord.getSprite()));
+                    bossAlive = false;
+                alienWarlord = null;
+                return;
+            }
+            bossAlive = true;
+
+            float delta = Gdx.graphics.getDeltaTime();
+            alienWarlord.getSprite().setX(MathUtils.clamp(alienWarlord.getSprite().getX(),0,worldWidth-alienWarlord.getSprite().getWidth()));
+            alienWarlord.getSprite().setY(MathUtils.clamp(alienWarlord.getSprite().getY(),worldHeight/2-alienWarlord.getSprite().getHeight(),worldHeight-alienWarlord.getSprite().getHeight()));
+
+            alienWarlord.addMoveTime();
+            alienWarlord.addShotTime();
+            if (alienWarlord.getWarlordShotTimer() > 1f) {
+                alienWarlord.setWarlordShotTimer(0);
+                createAlienLaser(alienWarlord.getSprite());
+                alienLaserSound.play();
+            }
+            if (alienWarlord.getWarlordMoveTimer() > 2f) {
+                alienWarlord.setWarlordMoveTimer(0);
+                alienWarlord.randomizeSpeed();
+            }
+            alienWarlord.getSprite().translateY(alienWarlord.getvSpeed() * delta);
+            alienWarlord.getSprite().translateX(alienWarlord.getxSpeed() * delta);
+            alienWarlord.getRectangle().set(alienWarlord.getSprite().getX(), alienWarlord.getSprite().getY(), alienWarlord.getSprite().getWidth(), alienWarlord.getSprite().getHeight());
 
         }
     }
@@ -272,6 +342,8 @@ public class GameScreen implements Screen {
         gameTimer += delta;
         flickerTimer += delta;
         explosionTimer += delta;
+
+
         if (flickerTimer >= FLICKER_INTERVAL && gameTimer < 5f) {
             isVisible = !isVisible;
             flickerTimer = 0;
@@ -280,36 +352,49 @@ public class GameScreen implements Screen {
             explosiveFlash = !explosiveFlash;
             explosionTimer = 0;
         }
-        if (isVisible && gameTimer<5f) {
+        if (isVisible && gameTimer < 5f) {
             game.startFont.draw(game.batch, "[RED]S[][BLUE]T[][YELLOW]A[][RED]R[][BLUE]T[][YELLOW]![]", worldWidth / 2 - 1, worldHeight / 2);
         }
         if (gameTimer > 5f) {
             for (Sprite stars : starArray) {
                 stars.draw(game.batch);
             }
+            for (int i = health - 1; i >= 0; i--) {
+                healthArray.getArray().get(i).draw(game.batch);
+            }
+            game.score.draw(game.batch, "[YELLOW]S[][RED]C[][BLUE]O[][GREEN]R[][YELLOW]E[] " + score, 0, worldHeight - 1.3f);
             for (Sprite heroLaser : heroLaserArr) {
                 heroLaser.draw(game.batch);
             }
-            for (Sprite alienslaser : enemyLaserArray) {
-                alienslaser.draw(game.batch);
+            for (Sprite aliensLaser : enemyLaserArray) {
+                aliensLaser.draw(game.batch);
             }
             shipSprite.draw(game.batch);
 
-            for(ExplosionTimer exploded: explodedArray){
-                if(explosiveFlash){
+
+            if (score >= 2000 && warlordHealth>0) {
+                game.warlordHealthInfo.draw(game.batch,"ALIEN WARLORD", 2f, worldHeight-0.3f);
+                for(Sprite health:warlordHealthGraphic.getArray()){
+                    health.draw(game.batch);
+                }
+                alienWarlord.getSprite().draw(game.batch);
+            }
+
+            for (ExplosionTimer exploded : explodedArray) {
+                if (explosiveFlash) {
                     exploded.returnSprite().draw(game.batch);
                 }
                 exploded.addTime();
-                if(exploded.returnTime()>3f){
-                    explodedArray.removeValue(exploded,true);
+                if (exploded.returnTime() > 3f) {
+                    explodedArray.removeValue(exploded, true);
                 }
             }
             for (Alien aliens : enemyArray) {
                 aliens.getAlien().draw(game.batch);
             }
-            if(health <=0){
+            if (health <= 0) {
                 music.stop();
-                game.setScreen(new Gameover(game));
+                game.setScreen(new Gameover(game, this));
                 //SET DISPOSE METHODS::::
                 dispose();
             }
@@ -335,7 +420,15 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-
+    //this.game.batch.dispose();
+    this.alien.dispose();
+    this.destroySound.dispose();
+    this.alienLaserSound.dispose();
+    this.heroLaser.dispose();
+    this.explosion.dispose();
+    this.music.dispose();
+    this.ship.dispose();
+    this.star.dispose();
     }
 
     public void shoot() {
@@ -350,7 +443,6 @@ public class GameScreen implements Screen {
 
         laserRec.put(heroLaserSprite, heroRectangle);
         heroLaserArr.add(heroLaserSprite);
-
     }
 
     public void createStars() {
@@ -373,63 +465,6 @@ public class GameScreen implements Screen {
         enemyArray.add(alienSprite);
     }
 
-
-
-    /*public void alienMovement(float movementTimer, float shotTimer){
-        float delta = Gdx.graphics.getDeltaTime();
-
-        if(movementTimer>12f){
-            alienXSpeed = MathUtils.random(-4f, 4f);
-            movementTimer = 0;
-        }
-
-
-        for(int i = enemyArray.size-1;i>=0;i--){
-            Sprite alienSprite = enemyArray.get(i);
-            enemyRec.set(alienSprite.getX(),alienSprite.getY(),alienSprite.getWidth(),alienSprite.getHeight());
-            if(alienSprite.getX()>0 || alienSprite.getX()<worldWidth){
-                alienSprite.setX(MathUtils.clamp(alienSprite.getX(),0f,worldWidth-alienSprite.getWidth()));
-            }
-            if(movementTimer>10f && alienSprite.getX()<shipSprite.getX()){
-                alienSprite.translateX(4f*delta);
-            }
-            if(movementTimer>10f && alienSprite.getX()>shipSprite.getX()){
-                alienSprite.translateX(-4f*delta);
-            }
-            alienSprite.translateX(alienXSpeed*delta);
-
-//            if(shotTimer>2f){
-//                createAlienLaser(enemyArray.get(i));
-//            }
-
-        }
-        for(int i = enemyLaserArray.size-1;i>=0;i--){
-
-            Sprite alienLaserSprite = enemyLaserArray.get(i);
-            alienLaserSprite.translateY(5f*delta);
-            enemyLaserRec.setX(alienLaserSprite.getX());
-            enemyLaserRec.setY(alienLaserSprite.getY());
-            enemyLaserRec.setSize(alienLaserSprite.getWidth(),alienLaserSprite.getHeight());
-
-
-            if(alienLaserSprite.getY()<0){
-                enemyLaserArray.removeIndex(i);
-            } else if (enemyLaserRec.overlaps(shipRec)) {
-                //play sound, lose health
-                health--;
-                enemyLaserArray.removeIndex(i);
-            }
-        }
-
-//        if(shotTimer>2f){
-//            shotTimer = 0;
-//            for(int i = enemyArray.size-1;i>=0;i--){
-//                createAlienLaser(enemyArray.get(i));
-//            }
-//        }
-
-    }*/
-
     public void createAlienLaser(Sprite alien) {
         Sprite alienLaserSprite = new Sprite(alienLaser);
         Rectangle laserRectangle = new Rectangle();
@@ -437,9 +472,9 @@ public class GameScreen implements Screen {
         alienLaserSprite.setSize(1f, 0.5f);
         alienLaserSprite.setX(alien.getX());
         alienLaserSprite.setY(alien.getY() - alien.getHeight());
-        laserRectangle.set(alienLaserSprite.getX(),alienLaserSprite.getY(),alienLaserSprite.getWidth(),alienLaserSprite.getHeight());
+        laserRectangle.set(alienLaserSprite.getX(), alienLaserSprite.getY(), alienLaserSprite.getWidth(), alienLaserSprite.getHeight());
 
-        enemyLaserRec.put(alienLaserSprite,laserRectangle);
+        enemyLaserRec.put(alienLaserSprite, laserRectangle);
         enemyLaserArray.add(alienLaserSprite);
     }
 

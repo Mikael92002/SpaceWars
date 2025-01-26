@@ -10,7 +10,7 @@ public class Alien {
     final Galaga game;
     Sprite alien;
     Texture alienTexture;
-    float shotTimer = 4f;
+    float shotTimer = MathUtils.random(4f,4.5f);
     float delta;
     Rectangle hitbox;
     float moveTimer = 1f;
@@ -63,8 +63,14 @@ public class Alien {
     public float getAlienXSpeed(){
         return alienXSpeed;
     }
+    public void setAlienXSpeed(float speed){
+        this.alienXSpeed = speed;
+    }
     public float getAlienYSpeed(){
         return alienYSpeed;
+    }
+    public void setAlienYSpeed(float speed){
+        this.alienXSpeed = speed;
     }
 
     public float getShotTimer(){

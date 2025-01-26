@@ -23,6 +23,9 @@ public class Galaga extends Game {
     public BitmapFont startFont;
     public BitmapFont gameOverFont;
     public BitmapFont tryAgainFont;
+    public BitmapFont score;
+    public BitmapFont endGameScore;
+    public BitmapFont warlordHealthInfo;
     FreeTypeFontGenerator generatorTwo;
     FreeTypeFontGenerator.FreeTypeFontParameter parameterTwo;
     /*public Texture star;
@@ -39,17 +42,26 @@ public class Galaga extends Game {
         pressFont = generator.generateFont(parameter);
         gameOverFont = generator.generateFont(parameter);
         tryAgainFont = generator.generateFont(parameter);
+        warlordHealthInfo = generator.generateFont(parameter);
+        score = generator.generateFont(parameter);
+        endGameScore = generator.generateFont(parameter);
         viewport = new FitViewport(7.2f,12.8f);
 
         welcomeFont.setUseIntegerPositions(false);
-        welcomeFont.getData().setScale(2*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
+        welcomeFont.getData().setScale(2f*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
         welcomeFont.setColor(Color.RED);
         pressFont.setUseIntegerPositions(false);
         pressFont.getData().setScale(viewport.getWorldHeight()/Gdx.graphics.getHeight());
         gameOverFont.setUseIntegerPositions(false);
         tryAgainFont.setUseIntegerPositions(false);
-        gameOverFont.getData().setScale(3*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
-        tryAgainFont.getData().setScale(2*(viewport.getWorldWidth()/Gdx.graphics.getHeight()));
+        score.setUseIntegerPositions(false);
+        warlordHealthInfo.setUseIntegerPositions(false);
+        endGameScore.setUseIntegerPositions(false);
+        gameOverFont.getData().setScale(3f*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
+        tryAgainFont.getData().setScale(1.5f*(viewport.getWorldWidth()/Gdx.graphics.getHeight()));
+        warlordHealthInfo.getData().setScale(viewport.getWorldHeight()/Gdx.graphics.getHeight());
+        endGameScore.getData().setScale(viewport.getWorldHeight()/Gdx.graphics.getHeight());
+        warlordHealthInfo.setColor(Color.RED);
 
         generatorTwo = new FreeTypeFontGenerator(Gdx.files.internal("ARCADECLASSIC.TTF"));
         parameterTwo = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -57,8 +69,13 @@ public class Galaga extends Game {
         startFont = generator.generateFont(parameter);
         startFont.setUseIntegerPositions(false);
         startFont.getData().setScale(2f*(viewport.getWorldHeight()/Gdx.graphics.getHeight()));
+        score.getData().setScale(viewport.getWorldHeight()/Gdx.graphics.getHeight());
+        endGameScore.getData().setScale(viewport.getWorldHeight()/Gdx.graphics.getHeight());
+        score.getData().markupEnabled = true;
         startFont.getData().markupEnabled = true;
         gameOverFont.getData().markupEnabled = true;
+        endGameScore.getData().markupEnabled = true;
+
         /*star = new Texture(Gdx.files.internal("star.png"));
         starArray = new Array<>();*/
 
