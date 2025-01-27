@@ -11,6 +11,7 @@ buildscript {
   }
 }
 plugins {
+  id("io.github.fourlastor.construo") version "1.6.0"
   id "application"
 }
 apply plugin: 'io.github.fourlastor.construo'
@@ -78,9 +79,9 @@ jar {
 
 construo {
     // name of the executable
-    name.set(appName)
+    name.set("SpaceWars")
     // human-readable name, used for example in the `.app` name for macOS
-    humanName.set(appName)
+    humanName.set("SpaceWars")
     // Optional, defaults to project version property
     version.set("$projectVersion")
 
