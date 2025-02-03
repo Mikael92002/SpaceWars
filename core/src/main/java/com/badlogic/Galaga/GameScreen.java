@@ -6,7 +6,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Colors;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
@@ -64,7 +63,7 @@ public class GameScreen implements Screen {
     boolean bossAlive = false;
     private int warlordHealth = 5;
     boolean warlordHit = false;
-    WarlordHealth warlordHealthGraphic;
+
     //collision:
     HashMap<Sprite, Rectangle> laserRec;
     HashMap<Alien, Rectangle> enemyRec;
@@ -103,7 +102,7 @@ public class GameScreen implements Screen {
         destroySound = Gdx.audio.newSound(Gdx.files.internal("destroySound.mp3"));
         healthArray = new PlayerHealth(this.game);
         alienLaserSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
-        warlordHealthGraphic = new WarlordHealth(this.game);
+
 
     }
 
@@ -232,7 +231,7 @@ public class GameScreen implements Screen {
                 if(laserRec.get(heroLaser) != null){
                     if(laserRec.get(heroLaser).overlaps(alienWarlord.getRectangle())){
                         warlordHealth--;
-                        warlordHealthGraphic.remove();
+                        alienWarlord.removeHealth();
                         heroLaserArr.removeIndex(i);
                     }
                 }
@@ -269,7 +268,6 @@ public class GameScreen implements Screen {
         if(score % 2000 == 0 && score > 0 && !bossAlive){
             alienWarlord = new AlienWarlord(this.game);
             warlordHealth = 5;
-            warlordHealthGraphic = new WarlordHealth(this.game);
         }
         if (alienWarlord != null) {
             if(warlordHealth<=0){
@@ -372,7 +370,7 @@ public class GameScreen implements Screen {
 
             if (score >= 2000 && warlordHealth>0) {
                 game.warlordHealthInfo.draw(game.batch,"ALIEN WARLORD", 2f, worldHeight-0.3f);
-                for(Sprite health:warlordHealthGraphic.getArray()){
+                for(Sprite health:alienWarlord.getHealthArray()){
                     health.draw(game.batch);
                 }
                 alienWarlord.getSprite().draw(game.batch);
