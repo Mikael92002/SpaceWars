@@ -47,7 +47,7 @@ public class GameScreen implements Screen {
     private boolean explosiveFlash = true;
     private Sound destroySound;
     //Health:
-    private PlayerHealth healthArray;
+
     //alien:
     private Sound alienLaserSound;
     //Score
@@ -82,7 +82,6 @@ public class GameScreen implements Screen {
         music.setVolume(0.5f);
         explodedArray = new Array<>();
         destroySound = Gdx.audio.newSound(Gdx.files.internal("destroySound.mp3"));
-        healthArray = new PlayerHealth(this.game);
         alienLaserSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
         player = new Player(game);
 
@@ -340,7 +339,7 @@ public class GameScreen implements Screen {
                 stars.draw(game.batch);
             }
             for (int i = player.getHealth() - 1; i >= 0; i--) {
-                healthArray.getArray().get(i).draw(game.batch);
+                player.getHealthArray().get(i).draw(game.batch);
             }
             game.score.draw(game.batch, "[YELLOW]S[][RED]C[][BLUE]O[][GREEN]R[][YELLOW]E[] " + score, 0, worldHeight - 1.3f);
             for (Sprite heroLaser : player.getHeroLaserArr()) {

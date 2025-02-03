@@ -19,6 +19,8 @@ public class Player {
     Sound laserSound;
     Rectangle shipRec;
     HashMap<Sprite, Rectangle> laserRec;
+    private Texture healthTexture;
+    private Array<Sprite> healthSpriteArray;
 
     public Player(Galaga game) {
         this.game = game;
@@ -32,6 +34,21 @@ public class Player {
         laserSound = Gdx.audio.newSound(Gdx.files.internal("laserSound.mp3"));
         shipRec = new Rectangle(shipSprite.getX(), shipSprite.getY(), shipSprite.getWidth(), shipSprite.getHeight());
         laserRec = new HashMap<>();
+        healthTexture = new Texture(Gdx.files.internal("pixelHeart.png"));
+        healthSpriteArray = new Array<>();
+        Sprite heartOne = new Sprite(healthTexture);
+        Sprite heartTwo = new Sprite(healthTexture);
+        Sprite heartThree = new Sprite(healthTexture);
+        heartOne.setSize(1f,1f);
+        heartTwo.setSize(1f,1f);
+        heartThree.setSize(1f,1f);
+        heartOne.setX(game.viewport.getWorldWidth()-heartOne.getWidth());
+        heartTwo.setX(heartOne.getX()-heartOne.getWidth());
+        heartThree.setX(heartTwo.getX()-heartTwo.getWidth());
+        heartOne.setY(game.viewport.getWorldHeight()-2);
+        heartTwo.setY(game.viewport.getWorldHeight()-2);
+        heartThree.setY(game.viewport.getWorldHeight()-2);
+        healthSpriteArray.addAll(heartOne,heartTwo,heartThree);
     }
 
     public void shoot() {
@@ -71,6 +88,9 @@ public class Player {
 
     public HashMap<Sprite, Rectangle> getLaserRec() {
         return laserRec;
+    }
+    public Array<Sprite> getHealthArray(){
+        return healthSpriteArray;
     }
 
 
