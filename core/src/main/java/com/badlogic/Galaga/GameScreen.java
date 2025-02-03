@@ -61,6 +61,12 @@ public class GameScreen implements Screen {
     HashMap<Alien, Rectangle> enemyRec;
     HashMap<Sprite, Rectangle> enemyLaserRec;
 
+    //powerUps:
+    PowerUps powerUps;
+    boolean powerUpActive = false;
+    boolean powerUpSpawn = false;
+    float powerUpSpawnCooldown = 0f;
+
 
 
     public GameScreen(Galaga game) {
@@ -89,7 +95,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        music.play();
+
     }
 
     @Override
@@ -111,14 +117,14 @@ public class GameScreen implements Screen {
     public void input() {
         if (gameTimer > 5f) {
             float delta = Gdx.graphics.getDeltaTime();
-            float speed = 4f;
+            //float speed = 4f;
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                player.getShipSprite().translateX(-speed * delta);
+                player.getShipSprite().translateX(-player.getShipSpeed() * delta);
             }
             if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                player.getShipSprite().translateX(speed * delta);
+                player.getShipSprite().translateX(player.getShipSpeed() * delta);
             }
-            if (Gdx.input.isKeyPressed(Input.Keys.UP) && coolDownTimer >= 0.75f) {
+            if (Gdx.input.isKeyPressed(Input.Keys.UP) && coolDownTimer >= 0.75f*player.coolDownTimerCoefficient) {
                 player.shoot();
                 coolDownTimer = 0;
             }
@@ -128,6 +134,7 @@ public class GameScreen implements Screen {
     public void logic() {
         if (gameTimer > 5f) {
             float delta = Gdx.graphics.getDeltaTime();
+            //alien creating logic:
             alienCreationTimer += delta;
             if (alienCreationTimer > 3f && enemyArray.size < 5) {
                 alienCreationTimer = 0;
@@ -139,8 +146,43 @@ public class GameScreen implements Screen {
                 }
             }
 
-//            shipSprite.setX(MathUtils.clamp(shipSprite.getX(), 0, worldWidth - shipSprite.getWidth()));
-//            shipRec.set(shipSprite.getX(), shipSprite.getY(), shipSprite.getWidth(), shipSprite.getHeight());
+            powerUpSpawnCooldown+=delta;
+            if(powerUpSpawnCooldown>=20f){
+                powerUps = new PowerUps(game);
+                powerUpActive = true;
+                powerUpSpawnCooldown = MathUtils.random(0,10f);
+            }
+
+
+            if(powerUpActive){
+                powerUps.activeSprite.translateY(-2f*delta);
+                powerUps.powerUpRectangle.setX(powerUps.activeSprite.getX());
+                powerUps.powerUpRectangle.setY(powerUps.activeSprite.getY());
+                if(powerUps.powerUpRectangle.overlaps(player.getShipRec())){
+                    powerUps.activatePowerUp(player);
+                    player.powerUpStatus = true;
+                    powerUpActive = false;
+                    powerUps = null;
+                }
+                else if(powerUps.activeSprite.getY()<-powerUps.activeSprite.getHeight()){
+                    powerUps = null;
+                    powerUpActive = false;
+                }
+            }
+
+            if(player.powerUpStatus && player.powerUpTimer<=10f){
+                player.powerUpTimer+=delta;
+                if(player.powerUpTimer>10f){
+                    player.powerUpStatus = false;
+                    player.normalizeShipSpeed();
+                    player.coolDownTimerCoefficient = 1f;
+                player.powerUpTimer = 0;}
+            }
+
+
+
+
+            //player movement bounds and rectangle logic:
             player.getShipSprite().setX(MathUtils.clamp(player.getShipSprite().getX(), 0, worldWidth-player.getShipSprite().getWidth()));
             player.getShipRec().set(player.getShipSprite().getX(), player.getShipSprite().getY(),player.getShipSprite().getWidth(), player.getShipSprite().getHeight());
 
@@ -224,7 +266,7 @@ public class GameScreen implements Screen {
             for (int i = enemyLaserArray.size - 1; i >= 0; i--) {
                 Sprite alienLaserSprite = enemyLaserArray.get(i);
 
-                alienLaserSprite.translateY(-4f * delta);
+                alienLaserSprite.translateY(-6f * delta);
 
                 Rectangle laserRectangle = enemyLaserRec.get(alienLaserSprite);
                 if (laserRectangle != null) {
@@ -272,7 +314,7 @@ public class GameScreen implements Screen {
             alienWarlord.addShotTime();
             if (alienWarlord.getWarlordShotTimer() > 1f) {
                 alienWarlord.setWarlordShotTimer(0);
-                createAlienLaser(alienWarlord.getSprite());
+                createAlienWarlordLaser(alienWarlord.getSprite());
                 alienLaserSound.play();
             }
             if (alienWarlord.getWarlordMoveTimer() > 2f) {
@@ -293,14 +335,14 @@ public class GameScreen implements Screen {
                 Sprite starSprite = starArray.get(i);
                 float starWidth = starSprite.getWidth();
                 float starHeight = starSprite.getHeight();
-                starSprite.translateY(-2f * delta);
+                starSprite.translateY(-5f * delta);
 
                 if (starSprite.getY() < -starHeight) {
                     starArray.removeIndex(i);
                 }
             }
             starTimer += delta;
-            if (starTimer > 0.5f) {
+            if (starTimer > 0.25f) {
                 createStars();
                 starTimer = 0;
             }
@@ -340,6 +382,9 @@ public class GameScreen implements Screen {
             }
             for (int i = player.getHealth() - 1; i >= 0; i--) {
                 player.getHealthArray().get(i).draw(game.batch);
+            }
+            if(powerUps!=null){
+                powerUps.activeSprite.draw(game.batch);
             }
             game.score.draw(game.batch, "[YELLOW]S[][RED]C[][BLUE]O[][GREEN]R[][YELLOW]E[] " + score, 0, worldHeight - 1.3f);
             for (Sprite heroLaser : player.getHeroLaserArr()) {
@@ -425,11 +470,10 @@ public class GameScreen implements Screen {
 //    }
 
     public void createStars() {
-        float starWidth = MathUtils.random(0.3f, 0.5f);
-        float starHeight = MathUtils.random(0.3f, 0.5f);
+        float starWidth = MathUtils.random(0.1f, 0.2f);
+        float starHeight = MathUtils.random(0.1f, 0.2f);
         float worldWidth = game.viewport.getWorldWidth();
         float worldHeight = game.viewport.getWorldHeight();
-
         Sprite starSprite = new Sprite(star);
         starSprite.setSize(starWidth, starHeight);
         starSprite.setX(MathUtils.random(0f, worldWidth - starWidth));
@@ -446,6 +490,18 @@ public class GameScreen implements Screen {
     }
 
     public void createAlienLaser(Sprite alien) {
+        Sprite alienLaserSprite = new Sprite(alienLaser);
+        Rectangle laserRectangle = new Rectangle();
+
+        alienLaserSprite.setSize(0.5f, 0.25f);
+        alienLaserSprite.setX(alien.getX());
+        alienLaserSprite.setY(alien.getY() - alien.getHeight());
+        laserRectangle.set(alienLaserSprite.getX(), alienLaserSprite.getY(), alienLaserSprite.getWidth(), alienLaserSprite.getHeight());
+
+        enemyLaserRec.put(alienLaserSprite, laserRectangle);
+        enemyLaserArray.add(alienLaserSprite);
+    }
+    public void createAlienWarlordLaser(Sprite alien){
         Sprite alienLaserSprite = new Sprite(alienLaser);
         Rectangle laserRectangle = new Rectangle();
 

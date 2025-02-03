@@ -21,6 +21,10 @@ public class Player {
     HashMap<Sprite, Rectangle> laserRec;
     private Texture healthTexture;
     private Array<Sprite> healthSpriteArray;
+    private float shipSpeed = 4f;
+    float coolDownTimerCoefficient = 1f;
+    float powerUpTimer = 0f;
+    public boolean powerUpStatus = false;
 
     public Player(Galaga game) {
         this.game = game;
@@ -92,6 +96,14 @@ public class Player {
     public Array<Sprite> getHealthArray(){
         return healthSpriteArray;
     }
-
+    public void doubleShipSpeed(){
+        this.shipSpeed = 8f;
+    }
+    public void normalizeShipSpeed(){
+        this.shipSpeed = 4f;
+    }
+    public float getShipSpeed(){
+        return this.shipSpeed;
+    }
 
 }
