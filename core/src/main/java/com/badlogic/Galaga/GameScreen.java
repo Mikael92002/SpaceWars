@@ -18,13 +18,9 @@ import java.util.HashMap;
 public class GameScreen implements Screen {
     final Galaga game;
     //ship:
-    private Texture ship;
-    private Texture heroLaser;
-    private Sprite shipSprite;
-    private int health = 3;
+    Player player;
     //background:
     private Array<Sprite> starArray;
-    private Array<Sprite> heroLaserArr;
     float gameTimer = 0f;
     boolean isVisible = true;
     float flickerTimer = 0f;
@@ -32,7 +28,6 @@ public class GameScreen implements Screen {
     float coolDownTimer = 0f;
     float worldWidth;
     float worldHeight;
-    Sound laserSound;
     private Texture star;
     private float starTimer = 0f;
     //alien:
@@ -50,7 +45,6 @@ public class GameScreen implements Screen {
     private Array<ExplosionTimer> explodedArray;
     private float explosionTimer = 0f;
     private boolean explosiveFlash = true;
-    private float explosiveFlashTimer = 0f;
     private Sound destroySound;
     //Health:
     private PlayerHealth healthArray;
@@ -62,36 +56,24 @@ public class GameScreen implements Screen {
     AlienWarlord alienWarlord = null;
     boolean bossAlive = false;
     private int warlordHealth = 5;
-    boolean warlordHit = false;
 
     //collision:
-    HashMap<Sprite, Rectangle> laserRec;
     HashMap<Alien, Rectangle> enemyRec;
-    Rectangle shipRec;
     HashMap<Sprite, Rectangle> enemyLaserRec;
+
 
 
     public GameScreen(Galaga game) {
         this.game = game;
         worldWidth = game.viewport.getWorldWidth();
         worldHeight = game.viewport.getWorldHeight();
-        ship = new Texture(Gdx.files.internal("spaceShips.png"));
         star = new Texture(Gdx.files.internal("star.png"));
-        shipSprite = new Sprite(ship);
-        shipSprite.setSize(1, 1);
-        shipSprite.setX(worldWidth / 2 - shipSprite.getWidth());
-        shipSprite.setY(0);
         starArray = new Array<>();
-        heroLaser = new Texture(Gdx.files.internal("shipBeam.png"));
-        heroLaserArr = new Array<>();
-        laserSound = Gdx.audio.newSound(Gdx.files.internal("laserSound.mp3"));
         alien = new Texture(Gdx.files.internal("alienBasic.png"));
         alienLaser = new Texture(Gdx.files.internal("alienBeam.png"));
         enemyArray = new Array<>();
         enemyLaserArray = new Array<>();
-        laserRec = new HashMap<>();
         enemyLaserRec = new HashMap<>();
-        shipRec = new Rectangle();
         enemyRec = new HashMap<>();
         explosion = new Texture(Gdx.files.internal("explosion.png"));
         music = Gdx.audio.newMusic(Gdx.files.internal("gameMusic.mp3"));
@@ -102,7 +84,7 @@ public class GameScreen implements Screen {
         destroySound = Gdx.audio.newSound(Gdx.files.internal("destroySound.mp3"));
         healthArray = new PlayerHealth(this.game);
         alienLaserSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
-
+        player = new Player(game);
 
     }
 
@@ -132,14 +114,13 @@ public class GameScreen implements Screen {
             float delta = Gdx.graphics.getDeltaTime();
             float speed = 4f;
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                shipSprite.translateX(-speed * delta);
+                player.getShipSprite().translateX(-speed * delta);
             }
             if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                shipSprite.translateX(speed * delta);
+                player.getShipSprite().translateX(speed * delta);
             }
             if (Gdx.input.isKeyPressed(Input.Keys.UP) && coolDownTimer >= 0.75f) {
-                laserSound.play();
-                shoot();
+                player.shoot();
                 coolDownTimer = 0;
             }
         }
@@ -159,8 +140,10 @@ public class GameScreen implements Screen {
                 }
             }
 
-            shipSprite.setX(MathUtils.clamp(shipSprite.getX(), 0, worldWidth - shipSprite.getWidth()));
-            shipRec.set(shipSprite.getX(), shipSprite.getY(), shipSprite.getWidth(), shipSprite.getHeight());
+//            shipSprite.setX(MathUtils.clamp(shipSprite.getX(), 0, worldWidth - shipSprite.getWidth()));
+//            shipRec.set(shipSprite.getX(), shipSprite.getY(), shipSprite.getWidth(), shipSprite.getHeight());
+            player.getShipSprite().setX(MathUtils.clamp(player.getShipSprite().getX(), 0, worldWidth-player.getShipSprite().getWidth()));
+            player.getShipRec().set(player.getShipSprite().getX(), player.getShipSprite().getY(),player.getShipSprite().getWidth(), player.getShipSprite().getHeight());
 
 
             for (int i = enemyArray.size - 1; i >= 0; i--) {
@@ -192,13 +175,14 @@ public class GameScreen implements Screen {
             }
 
 
-            for (int i = heroLaserArr.size - 1; i >= 0; i--) {
-                Sprite heroLaser = heroLaserArr.get(i);
+            for (int i = player.getHeroLaserArr().size - 1; i >= 0; i--) {
+                Sprite heroLaser = player.getHeroLaserArr().get(i);
                 float heroHeight = heroLaser.getHeight();
                 float heroWidth = heroLaser.getWidth();
 
                 heroLaser.translateY(10f * delta);
-                Rectangle laserRectangle = laserRec.get(heroLaser);
+                Rectangle laserRectangle = player.getLaserRec().get(heroLaser);
+
                 if (laserRectangle != null) {
                     laserRectangle.set(heroLaser.getX(), heroLaser.getY(), heroLaser.getWidth(), heroLaser.getHeight());
                 }
@@ -206,14 +190,14 @@ public class GameScreen implements Screen {
                 for (int j = enemyArray.size - 1; j >= 0; j--) {
                     Alien alienSprite = enemyArray.get(j);
                     Rectangle rectangle = enemyRec.get(alienSprite);
-                    if (laserRec.get(heroLaser) != null) {
-                        if (laserRec.get(heroLaser).overlaps(rectangle)) {
+                    if (player.getLaserRec().get(heroLaser) != null) {
+                        if (player.getLaserRec().get(heroLaser).overlaps(rectangle)) {
                             destroySound.play();
-                            heroLaserArr.removeIndex(i);
+                            player.getHeroLaserArr().removeIndex(i);
                             enemyArray.get(j).getAlien().setTexture(explosion);
                             explodedArray.add(new ExplosionTimer(enemyArray.get(j).getAlien()));
                             enemyArray.removeIndex(j);
-                            laserRec.remove(heroLaser);
+                            player.getLaserRec().remove(heroLaser);
                             score += 100;
                         }
 
@@ -224,15 +208,15 @@ public class GameScreen implements Screen {
 
                 }
                 if (heroLaser.getY() > worldHeight) {
-                    heroLaserArr.removeIndex(i);
+                    player.getHeroLaserArr().removeIndex(i);
                 }
 
                 if(alienWarlord != null){
-                if(laserRec.get(heroLaser) != null){
-                    if(laserRec.get(heroLaser).overlaps(alienWarlord.getRectangle())){
+                if(player.getLaserRec().get(heroLaser) != null){
+                    if(player.getLaserRec().get(heroLaser).overlaps(alienWarlord.getRectangle())){
                         warlordHealth--;
                         alienWarlord.removeHealth();
-                        heroLaserArr.removeIndex(i);
+                        player.getHeroLaserArr().removeIndex(i);
                     }
                 }
             }
@@ -249,9 +233,9 @@ public class GameScreen implements Screen {
                 }
 
                 if (laserRectangle != null) {
-                    if (laserRectangle.overlaps(shipRec)) {
+                    if (laserRectangle.overlaps(player.getShipRec())) {
                         enemyLaserArray.removeIndex(i);
-                        health--;
+                        player.setHealth(player.getHealth()-1);
                     }
                 }
             }
@@ -355,17 +339,17 @@ public class GameScreen implements Screen {
             for (Sprite stars : starArray) {
                 stars.draw(game.batch);
             }
-            for (int i = health - 1; i >= 0; i--) {
+            for (int i = player.getHealth() - 1; i >= 0; i--) {
                 healthArray.getArray().get(i).draw(game.batch);
             }
             game.score.draw(game.batch, "[YELLOW]S[][RED]C[][BLUE]O[][GREEN]R[][YELLOW]E[] " + score, 0, worldHeight - 1.3f);
-            for (Sprite heroLaser : heroLaserArr) {
+            for (Sprite heroLaser : player.getHeroLaserArr()) {
                 heroLaser.draw(game.batch);
             }
             for (Sprite aliensLaser : enemyLaserArray) {
                 aliensLaser.draw(game.batch);
             }
-            shipSprite.draw(game.batch);
+            player.getShipSprite().draw(game.batch);
 
 
             if (score >= 2000 && warlordHealth>0) {
@@ -388,7 +372,7 @@ public class GameScreen implements Screen {
             for (Alien aliens : enemyArray) {
                 aliens.getAlien().draw(game.batch);
             }
-            if (health <= 0) {
+            if (player.getHealth() <= 0) {
                 music.stop();
                 game.setScreen(new Gameover(game, this));
                 //SET DISPOSE METHODS::::
@@ -420,26 +404,26 @@ public class GameScreen implements Screen {
     this.alien.dispose();
     this.destroySound.dispose();
     this.alienLaserSound.dispose();
-    this.heroLaser.dispose();
+    //this.heroLaser.dispose();
     this.explosion.dispose();
     this.music.dispose();
-    this.ship.dispose();
+    //this.ship.dispose();
     this.star.dispose();
     }
 
-    public void shoot() {
-        Sprite heroLaserSprite = new Sprite(heroLaser);
-        Rectangle heroRectangle = new Rectangle();
-
-        heroLaserSprite.setSize(1, 0.5f);
-        heroLaserSprite.setX(shipSprite.getX() + 0.05f);
-        heroLaserSprite.setY(shipSprite.getHeight());
-
-        heroRectangle.set(heroLaserSprite.getX(), heroLaserSprite.getY(), heroLaserSprite.getWidth(), heroLaserSprite.getHeight());
-
-        laserRec.put(heroLaserSprite, heroRectangle);
-        heroLaserArr.add(heroLaserSprite);
-    }
+//    public void shoot() {
+//        Sprite heroLaserSprite = new Sprite(heroLaser);
+//        Rectangle heroRectangle = new Rectangle();
+//
+//        heroLaserSprite.setSize(1, 0.5f);
+//        heroLaserSprite.setX(shipSprite.getX() + 0.05f);
+//        heroLaserSprite.setY(shipSprite.getHeight());
+//
+//        heroRectangle.set(heroLaserSprite.getX(), heroLaserSprite.getY(), heroLaserSprite.getWidth(), heroLaserSprite.getHeight());
+//
+//        laserRec.put(heroLaserSprite, heroRectangle);
+//        heroLaserArr.add(heroLaserSprite);
+//    }
 
     public void createStars() {
         float starWidth = MathUtils.random(0.3f, 0.5f);
