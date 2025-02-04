@@ -37,7 +37,7 @@ public class GameScreen implements Screen {
     private float alienSpeed;
     private Texture alien;
     private Texture alienLaser;
-    private Array<Alien> enemyArray;
+    private Array<Alien> enemyAlienArray;
     public Array<Sprite> enemyLaserArray;
     private Texture explosion;
     private Music music;
@@ -46,6 +46,7 @@ public class GameScreen implements Screen {
     private float explosionTimer = 0f;
     private boolean explosiveFlash = true;
     private Sound destroySound;
+
     //Health:
 
     //alien:
@@ -56,16 +57,27 @@ public class GameScreen implements Screen {
     AlienWarlord alienWarlord = null;
     boolean bossAlive = false;
     private int warlordHealth = 5;
+    int warlordKills = 0;
 
     //collision:
-    HashMap<Alien, Rectangle> enemyRec;
+    HashMap<Alien, Rectangle> enemyAlienRec;
     HashMap<Sprite, Rectangle> enemyLaserRec;
+    HashMap<Octopus, Rectangle> enemyOctopusRec;
 
     //powerUps:
     PowerUps powerUps;
     boolean powerUpActive = false;
-    boolean powerUpSpawn = false;
     float powerUpSpawnCooldown = 0f;
+
+    //octopus:
+    Array<Octopus> octopusArray;
+    Array<Sprite> octopusLaserArray;
+    int octopusLaserRotation = 1;
+    HashMap<Octopus, Rectangle> octopusRectangleHashMap;
+    HashMap<Sprite, Rectangle> octopusLaserRectangle;
+    float octopusSpawnTimer = 0f;
+    private Texture octopusLaserTexture;
+    private Sound octopusShot;
 
 
 
@@ -77,10 +89,10 @@ public class GameScreen implements Screen {
         starArray = new Array<>();
         alien = new Texture(Gdx.files.internal("alienBasic.png"));
         alienLaser = new Texture(Gdx.files.internal("alienBeam.png"));
-        enemyArray = new Array<>();
+        enemyAlienArray = new Array<>();
         enemyLaserArray = new Array<>();
         enemyLaserRec = new HashMap<>();
-        enemyRec = new HashMap<>();
+        enemyAlienRec = new HashMap<>();
         explosion = new Texture(Gdx.files.internal("explosion.png"));
         music = Gdx.audio.newMusic(Gdx.files.internal("gameMusic.mp3"));
         music.setLooping(true);
@@ -90,7 +102,12 @@ public class GameScreen implements Screen {
         destroySound = Gdx.audio.newSound(Gdx.files.internal("destroySound.mp3"));
         alienLaserSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
         player = new Player(game);
-
+        octopusArray = new Array<>();
+        octopusLaserTexture = new Texture(Gdx.files.internal("octopusBeam.png"));
+        octopusRectangleHashMap = new HashMap<>();
+        octopusLaserRectangle = new HashMap<>();
+        octopusLaserArray = new Array<>();
+        octopusShot = Gdx.audio.newSound(Gdx.files.internal("octopusShot.mp3"));
     }
 
     @Override
@@ -136,14 +153,20 @@ public class GameScreen implements Screen {
             float delta = Gdx.graphics.getDeltaTime();
             //alien creating logic:
             alienCreationTimer += delta;
-            if (alienCreationTimer > 3f && enemyArray.size < 5) {
+            octopusSpawnTimer += delta;
+            if (alienCreationTimer > 3f && enemyAlienArray.size < 5 && warlordKills<2) {
                 alienCreationTimer = 0;
                 createAlien();
                 float chance = MathUtils.random(0, 1f);
-                if (chance < 0.25f && !bossAlive && enemyArray.size<=3) {
+                if (chance < 0.25f && !bossAlive && enemyAlienArray.size<=3) {
                     createAlien();
                     createAlien();
                 }
+            }
+            //octopus creating logic:
+            if(octopusSpawnTimer>2.5f && octopusArray.size < 5 && warlordKills>=2 && enemyAlienArray.size == 0){
+                createOctopus();
+                octopusSpawnTimer = 0;
             }
 
             powerUpSpawnCooldown+=delta;
@@ -152,7 +175,6 @@ public class GameScreen implements Screen {
                 powerUpActive = true;
                 powerUpSpawnCooldown = MathUtils.random(0,10f);
             }
-
 
             if(powerUpActive){
                 powerUps.activeSprite.translateY(-2f*delta);
@@ -187,8 +209,8 @@ public class GameScreen implements Screen {
             player.getShipRec().set(player.getShipSprite().getX(), player.getShipSprite().getY(),player.getShipSprite().getWidth(), player.getShipSprite().getHeight());
 
 
-            for (int i = enemyArray.size - 1; i >= 0; i--) {
-                Alien alien = enemyArray.get(i);
+            for (int i = enemyAlienArray.size - 1; i >= 0; i--) {
+                Alien alien = enemyAlienArray.get(i);
                 float alienWidth = alien.getAlien().getWidth();
                 float alienHeight = alien.getAlien().getWidth();
 
@@ -210,9 +232,30 @@ public class GameScreen implements Screen {
 
                 alien.getAlien().translateX(alien.getAlienXSpeed() * delta);
                 alien.getAlien().translateY(alien.getAlienYSpeed() * delta);
-                enemyRec.get(alien).set(alien.getAlien().getX(), alien.getAlien().getY(), alienWidth, alienHeight);
+                enemyAlienRec.get(alien).set(alien.getAlien().getX(), alien.getAlien().getY(), alienWidth, alienHeight);
 
 
+            }
+
+            for(int i = octopusArray.size - 1; i>=0; i--){
+                Octopus octopus = octopusArray.get(i);
+                float octopusWidth = octopus.getOctopusSprite().getWidth();
+                float octopusHeight = octopus.getOctopusSprite().getHeight();
+
+                octopus.addTeleportTime();
+                octopus.teleportLogic();
+                octopus.addShotTime();
+
+                if(octopus.shotTimer >= 2.5f){
+                    createOctopusFirstLaser(octopus.getOctopusSprite());
+                    createOctopusFirstLaser(octopus.getOctopusSprite());
+                    octopusShot.play();
+                    octopus.shotTimer = 0;
+                }
+
+                octopus.getOctopusSprite()
+
+                octopusRectangleHashMap.get(octopus).set(octopus.getOctopusSprite().getX(), octopus.getOctopusSprite().getY(), octopusWidth, octopusHeight);
             }
 
 
@@ -228,28 +271,23 @@ public class GameScreen implements Screen {
                     laserRectangle.set(heroLaser.getX(), heroLaser.getY(), heroLaser.getWidth(), heroLaser.getHeight());
                 }
 
-                for (int j = enemyArray.size - 1; j >= 0; j--) {
-                    Alien alienSprite = enemyArray.get(j);
-                    Rectangle rectangle = enemyRec.get(alienSprite);
+                for (int j = enemyAlienArray.size - 1; j >= 0; j--) {
+                    Alien alienSprite = enemyAlienArray.get(j);
+                    Rectangle rectangle = enemyAlienRec.get(alienSprite);
                     if (player.getLaserRec().get(heroLaser) != null) {
                         if (player.getLaserRec().get(heroLaser).overlaps(rectangle)) {
                             destroySound.play();
                             player.getHeroLaserArr().removeIndex(i);
-                            enemyArray.get(j).getAlien().setTexture(explosion);
-                            explodedArray.add(new ExplosionTimer(enemyArray.get(j).getAlien()));
-                            enemyArray.removeIndex(j);
+                            enemyAlienArray.get(j).getAlien().setTexture(explosion);
+                            explodedArray.add(new ExplosionTimer(enemyAlienArray.get(j).getAlien()));
+                            enemyAlienArray.removeIndex(j);
                             player.getLaserRec().remove(heroLaser);
                             score += 100;
                         }
 
 
+
                     }
-
-
-
-                }
-                if (heroLaser.getY() > worldHeight) {
-                    player.getHeroLaserArr().removeIndex(i);
                 }
 
                 if(alienWarlord != null){
@@ -261,6 +299,26 @@ public class GameScreen implements Screen {
                     }
                 }
             }
+                for(int k = octopusArray.size - 1;k>=0;k--){
+                    Octopus octopusSprite = octopusArray.get(k);
+                    Rectangle rectangle = octopusRectangleHashMap.get(octopusSprite);
+                    if (player.getLaserRec().get(heroLaser) != null) {
+                        if (player.getLaserRec().get(heroLaser).overlaps(rectangle)) {
+                            destroySound.play();
+                            player.getHeroLaserArr().removeIndex(i);
+                            octopusArray.get(k).getOctopusSprite().setTexture(explosion);
+                            octopusArray.get(k).getOctopusSprite().setColor(Color.PURPLE);
+                            octopusArray.get(k).getOctopusSprite().setSize(1f,1f);
+                            explodedArray.add(new ExplosionTimer(octopusArray.get(k).getOctopusSprite()));
+                            octopusArray.removeIndex(k);
+                            player.getLaserRec().remove(heroLaser);
+                            score += 100;
+                        }
+
+
+
+                    }
+                }
             }
 
             for (int i = enemyLaserArray.size - 1; i >= 0; i--) {
@@ -280,6 +338,33 @@ public class GameScreen implements Screen {
                     }
                 }
             }
+            for(int i = octopusLaserArray.size - 1; i>=0; i--){
+                Sprite octopusLaserSprite = octopusLaserArray.get(i);
+                float speed = -6f;
+                if(octopusLaserSprite.getRotation()>0){
+                octopusLaserSprite.translateY(speed*delta);
+                octopusLaserSprite.translateX(-(speed/4)*delta);
+                }
+                else if(octopusLaserSprite.getRotation()<0){
+                    octopusLaserSprite.translateY(speed*delta);
+                    octopusLaserSprite.translateX((speed/4)*delta);
+                }
+                System.out.println("position is: " + octopusLaserSprite.getX() + " Y: " + octopusLaserSprite.getY());
+
+                Rectangle octopusLaserRectangle = this.octopusLaserRectangle.get(octopusLaserSprite);
+                if(octopusLaserRectangle != null){
+                    octopusLaserRectangle.set(octopusLaserSprite.getX(), octopusLaserSprite.getY(), octopusLaserSprite.getWidth(), octopusLaserSprite.getHeight());
+                }
+                if(octopusLaserRectangle != null){
+                    if(octopusLaserRectangle.overlaps(player.getShipRec())){
+                        octopusLaserArray.removeIndex(i);
+                        player.setHealth(player.getHealth()-1);
+                    }
+                    else if(octopusLaserRectangle.getX()< 0 - octopusLaserRectangle.getWidth() || octopusLaserRectangle.getX()>worldWidth+octopusLaserRectangle.getWidth() || octopusLaserRectangle.getY() < -octopusLaserRectangle.getHeight()){
+                        octopusLaserArray.removeIndex(i);
+                    }
+                }
+            }
 
             alienMovementTimer += delta;
             alienShotTimer += delta;
@@ -290,7 +375,7 @@ public class GameScreen implements Screen {
 
 
         }
-        if(score % 2000 == 0 && score > 0 && !bossAlive){
+        if(score % 2000 == 0 && score > 0 && !bossAlive && warlordKills<2){
             alienWarlord = new AlienWarlord(this.game);
             warlordHealth = 5;
         }
@@ -302,6 +387,7 @@ public class GameScreen implements Screen {
                     explodedArray.add(new ExplosionTimer(alienWarlord.getSprite()));
                     bossAlive = false;
                 alienWarlord = null;
+                warlordKills++;
                 return;
             }
             bossAlive = true;
@@ -393,6 +479,11 @@ public class GameScreen implements Screen {
             for (Sprite aliensLaser : enemyLaserArray) {
                 aliensLaser.draw(game.batch);
             }
+            for(Sprite octopusLasers: octopusLaserArray){
+                octopusLasers.draw(game.batch);
+            }
+
+
             player.getShipSprite().draw(game.batch);
 
 
@@ -413,8 +504,13 @@ public class GameScreen implements Screen {
                     explodedArray.removeValue(exploded, true);
                 }
             }
-            for (Alien aliens : enemyArray) {
+            for (Alien aliens : enemyAlienArray) {
                 aliens.getAlien().draw(game.batch);
+            }
+            for(Octopus octopus: octopusArray){
+                if(octopus.isVisibility()){
+                    octopus.getOctopusSprite().draw(game.batch);}
+
             }
             if (player.getHealth() <= 0) {
                 music.stop();
@@ -485,8 +581,8 @@ public class GameScreen implements Screen {
     public void createAlien() {
         Alien alienSprite = new Alien(this.game);
 
-        enemyRec.put(alienSprite, alienSprite.getRectangle());
-        enemyArray.add(alienSprite);
+        enemyAlienRec.put(alienSprite, alienSprite.getRectangle());
+        enemyAlienArray.add(alienSprite);
     }
 
     public void createAlienLaser(Sprite alien) {
@@ -512,6 +608,24 @@ public class GameScreen implements Screen {
 
         enemyLaserRec.put(alienLaserSprite, laserRectangle);
         enemyLaserArray.add(alienLaserSprite);
+    }
+
+    public void createOctopus(){
+        Octopus octopus = new Octopus(game);
+        octopusRectangleHashMap.put(octopus, octopus.getOctopusHitBox());
+        octopusArray.add(octopus);
+    }
+    public void createOctopusFirstLaser(Sprite octopus){
+        Sprite octopusLaser = new Sprite(octopusLaserTexture);
+        octopusLaser.setSize(0.4f,0.4f);
+        octopusLaser.setX(octopus.getX());
+        octopusLaser.setY(octopus.getY()-octopus.getHeight());
+        octopusLaser.setRotation(octopusLaserRotation*0.0001f);
+        octopusLaserRotation*=-1;
+        Rectangle rectangle = new Rectangle(octopus.getX(), octopus.getY(), octopus.getWidth(), octopus.getHeight());
+
+        octopusLaserRectangle.put(octopusLaser, rectangle);
+        octopusLaserArray.add(octopusLaser);
     }
 
 }
