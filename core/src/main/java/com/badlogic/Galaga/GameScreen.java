@@ -166,7 +166,12 @@ public class GameScreen implements Screen {
             //octopus creating logic:
             if(octopusSpawnTimer>2.5f && octopusArray.size < 5 && warlordKills>=2 && enemyAlienArray.size == 0){
                 createOctopus();
+                float chance = MathUtils.random(0,1f);
+                if(chance<=0.1f){
+                    createOctopus();
+                }
                 octopusSpawnTimer = 0;
+
             }
 
             powerUpSpawnCooldown+=delta;
@@ -251,9 +256,14 @@ public class GameScreen implements Screen {
                     createOctopusFirstLaser(octopus.getOctopusSprite());
                     octopusShot.play();
                     octopus.shotTimer = 0;
+                    octopus.randomizeSpeed();
                 }
 
-                octopus.getOctopusSprite()
+                octopus.getOctopusSprite().setX(MathUtils.clamp(octopus.getOctopusSprite().getX(), 0, worldWidth - octopusWidth));
+                octopus.getOctopusSprite().setY(MathUtils.clamp(octopus.getOctopusSprite().getY(), worldHeight/2 + octopusHeight, worldHeight - octopusHeight));
+
+                octopus.getOctopusSprite().translateX(octopus.octopusXSpeed*delta);
+                octopus.getOctopusSprite().translateY(octopus.octopusYSpeed*delta);
 
                 octopusRectangleHashMap.get(octopus).set(octopus.getOctopusSprite().getX(), octopus.getOctopusSprite().getY(), octopusWidth, octopusHeight);
             }

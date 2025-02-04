@@ -20,8 +20,8 @@ public class Octopus {
     float teleportFlicker = 0f;
     float teleportFlickerInterval = 0.10f;
     Rectangle hitbox;
-    float octopusXSpeed;
-    float octopusYSpeed;
+    float octopusXSpeed = MathUtils.random(-2f,2f);
+    float octopusYSpeed = MathUtils.random(-2f,2f);
     float delta;
 
 
@@ -72,5 +72,9 @@ public class Octopus {
     }
     public boolean isVisibility(){
         return visibility;
+    }
+    public void randomizeSpeed(){
+        octopusXSpeed = MathUtils.random(-2f,2f);
+        octopusYSpeed = MathUtils.random(-2f,2f);
     }
 }
