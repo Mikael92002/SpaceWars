@@ -181,6 +181,7 @@ public class GameScreen implements Screen {
             }
             else if(octopusSpawnTimer>2.5f && octopusArray.size < 2 && warlordKills >= 2 && enemyAlienArray.size == 0){
                 createOctopus();
+                octopusSpawnTimer = 0;
             }
 
             powerUpSpawnCooldown+=delta;
@@ -450,6 +451,7 @@ public class GameScreen implements Screen {
             if(overBossHealth<=0){
                 overBoss.getOverBossSprite().setTexture(explosion);
                 overBoss.getOverBossSprite().setColor(Color.PURPLE);
+                overBoss.getOverBossSprite().setScale(1f);
                 destroySound.play();
                 score += 300;
                 explodedArray.add(new ExplosionTimer(overBoss.getOverBossSprite()));
