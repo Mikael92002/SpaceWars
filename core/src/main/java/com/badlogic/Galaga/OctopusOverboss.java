@@ -34,10 +34,10 @@ public class OctopusOverboss {
         this.game = game;
         overBossTexture = new Texture(Gdx.files.internal("octopusoverboss.png"));
         overBossSprite = new Sprite(overBossTexture);
-        overBossSprite.setX(game.viewport.getWorldWidth() / 2 - overBossSprite.getWidth());
-        overBossSprite.setY(game.viewport.getWorldHeight());
         overBossSprite.setSize(1f, 1f);
         overBossSprite.setScale(2f);
+        overBossSprite.setX(game.viewport.getWorldWidth() / 2 - overBossSprite.getWidth());
+        overBossSprite.setY(game.viewport.getWorldHeight());
         rectangle = new Rectangle(overBossSprite.getX(), overBossSprite.getY(), overBossSprite.getWidth(), overBossSprite.getHeight());
         overBossSprite.setOriginCenter();
         healthOne = new Texture(Gdx.files.internal("octHealthOne.png"));
