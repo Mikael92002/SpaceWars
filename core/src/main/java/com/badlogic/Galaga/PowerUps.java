@@ -42,7 +42,7 @@ public class PowerUps {
     }
     public void createShipSpeed(){
         shipSpeedSprite = new Sprite(this.shipSpeed);
-        shipSpeedSprite.setSize(0.25f, 0.25f);
+        shipSpeedSprite.setSize(0.4f, 0.4f);
         shipSpeedSprite.setX(MathUtils.random(0,game.viewport.getWorldWidth()-shipSpeedSprite.getWidth()));
         shipSpeedSprite.setY(game.viewport.getWorldHeight());
     }

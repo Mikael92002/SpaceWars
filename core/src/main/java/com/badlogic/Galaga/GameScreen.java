@@ -81,7 +81,10 @@ public class GameScreen implements Screen {
     private Sound octopusShot;
 
     //octopusOverBoss:
-    OctopusOverboss overBoss
+    OctopusOverboss overBoss;
+    int overBossHealth = 0;
+    int overBossKills = 0;
+
 
 
     public GameScreen(Galaga game) {
@@ -157,7 +160,7 @@ public class GameScreen implements Screen {
             //alien creating logic:
             alienCreationTimer += delta;
             octopusSpawnTimer += delta;
-            if (alienCreationTimer > 3f && enemyAlienArray.size < 5 && warlordKills<2) {
+            if (alienCreationTimer > 3f && enemyAlienArray.size < 5 && warlordKills<2 && octopusArray.size == 0) {
                 alienCreationTimer = 0;
                 createAlien();
                 float chance = MathUtils.random(0, 1f);
@@ -167,14 +170,17 @@ public class GameScreen implements Screen {
                 }
             }
             //octopus creating logic:
-            if(octopusSpawnTimer>2.5f && octopusArray.size < 5 && warlordKills>=2 && enemyAlienArray.size == 0){
+            if(octopusSpawnTimer>2.5f && octopusArray.size < 3 && warlordKills>=2 && enemyAlienArray.size == 0 && !bossAlive){
                 createOctopus();
                 float chance = MathUtils.random(0,1f);
-                if(chance<=0.1f){
+                if(chance<=0.1f && octopusArray.size<=2){
                     createOctopus();
                 }
                 octopusSpawnTimer = 0;
 
+            }
+            else if(octopusSpawnTimer>2.5f && octopusArray.size < 2 && warlordKills >= 2 && enemyAlienArray.size == 0){
+                createOctopus();
             }
 
             powerUpSpawnCooldown+=delta;
@@ -312,6 +318,15 @@ public class GameScreen implements Screen {
                     }
                 }
             }
+                if(overBoss != null){
+                    if(player.getLaserRec().get(heroLaser) != null){
+                        if(player.getLaserRec().get(heroLaser).overlaps(overBoss.getRectangle())){
+                            overBossHealth--;
+                            overBoss.removeHealthFromArray();
+                            player.getHeroLaserArr().removeIndex(i);
+                        }
+                    }
+                }
                 for(int k = octopusArray.size - 1;k>=0;k--){
                     Octopus octopusSprite = octopusArray.get(k);
                     Rectangle rectangle = octopusRectangleHashMap.get(octopusSprite);
@@ -392,6 +407,11 @@ public class GameScreen implements Screen {
             alienWarlord = new AlienWarlord(this.game);
             warlordHealth = 5;
         }
+        if(score % 2000 == 0 && score > 0 && !bossAlive && warlordKills>=2){
+            overBoss = new OctopusOverboss(this.game);
+            overBossHealth = 6;
+        }
+
         if (alienWarlord != null) {
             if(warlordHealth<=0){
                     alienWarlord.getSprite().setTexture(explosion);
@@ -426,6 +446,46 @@ public class GameScreen implements Screen {
 
         }
 
+        if(overBoss != null){
+            if(overBossHealth<=0){
+                overBoss.getOverBossSprite().setTexture(explosion);
+                overBoss.getOverBossSprite().setColor(Color.PURPLE);
+                destroySound.play();
+                score += 300;
+                explodedArray.add(new ExplosionTimer(overBoss.getOverBossSprite()));
+                bossAlive = false;
+                overBoss = null;
+                overBossKills++;
+                return;
+            }
+            bossAlive = true;
+
+            float delta = Gdx.graphics.getDeltaTime();
+
+            overBoss.moveTimer+=delta;
+            overBoss.getOverBossSprite().setX(MathUtils.clamp(overBoss.getOverBossSprite().getX(), 0 , worldWidth-overBoss.getOverBossSprite().getWidth()));
+            overBoss.getOverBossSprite().setY(MathUtils.clamp(overBoss.getOverBossSprite().getY(), worldHeight/2+overBoss.getOverBossSprite().getHeight(), worldHeight-overBoss.getOverBossSprite().getHeight()));
+
+            overBoss.addTeleportTime();
+            overBoss.teleportLogic();
+            overBoss.addShotTime();
+            if(overBoss.shotTimer>2.5f){
+                createOverBossLaser(overBoss.getOverBossSprite());
+                createOverBossLaser(overBoss.getOverBossSprite());
+                octopusShot.play();
+                overBoss.shotTimer = 0;
+            }
+            if(overBoss.moveTimer>3f){
+                overBoss.randomizeSpeed();
+                overBoss.moveTimer = 0;
+            }
+            overBoss.getOverBossSprite().translateY(overBoss.overBossYSpeed*delta);
+            overBoss.getOverBossSprite().translateX(overBoss.overBossXSpeed*delta);
+            overBoss.getRectangle().set(overBoss.getOverBossSprite().getX(), overBoss.getOverBossSprite().getY(), overBoss.getOverBossSprite().getWidth(), overBoss.getOverBossSprite().getHeight());
+        }
+        if(overBossKills>=2){
+            resetBossKills();
+        }
 
     }
 
@@ -508,6 +568,14 @@ public class GameScreen implements Screen {
                     health.draw(game.batch);
                 }
                 alienWarlord.getSprite().draw(game.batch);
+            }
+            if(score>=2000 && overBossHealth>0){
+                game.warlordHealthInfo.draw(game.batch, "OCTOPUS OVERBOSS", 1.7f, worldHeight-0.3f);
+                for(Sprite health: overBoss.healthArray){
+                    health.draw(game.batch);
+                }
+                if(overBoss.isVisibility()){
+                overBoss.getOverBossSprite().draw(game.batch);}
             }
 
             for (ExplosionTimer exploded : explodedArray) {
@@ -647,14 +715,19 @@ public class GameScreen implements Screen {
         Sprite overBossLaser = new Sprite(new Texture(Gdx.files.internal("octopusBeam.png")));
 
         overBossLaser.setSize(0.5f,0.5f);
-        overBossLaser.setX(sprite.getX());
-        overBossLaser.setY(sprite.getY()-sprite.getHeight());
-        overBossLaser.setRotation(0.00001f*overlordLaserRotation);
+        overBossLaser.setX(sprite.getX()+.3f);
+        overBossLaser.setY(sprite.getY());
+        overBossLaser.setRotation(0.0001f*overlordLaserRotation);
         overlordLaserRotation*=-1;
         Rectangle rectangle = new Rectangle(overBossLaser.getX(), overBossLaser.getY(), overBossLaser.getWidth(), overBossLaser.getHeight());
 
         octopusLaserRectangle.put(overBossLaser, rectangle);
         octopusLaserArray.add(overBossLaser);
+    }
+
+    public void resetBossKills(){
+        warlordKills = 0;
+        overBossKills = 0;
     }
 
 }

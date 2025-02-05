@@ -46,12 +46,12 @@ public class AlienWarlord {
         healthArray.add(new Sprite(bossHealthFour));
         healthArray.add(new Sprite(bossHealthFive));
         float xPos = 2.7f;
-        float yPos = game.viewport.getWorldHeight()-1f;
-        for(Sprite sprites:healthArray){
-            sprites.setSize(0.25f,0.25f);
+        float yPos = game.viewport.getWorldHeight() - 1f;
+        for (Sprite sprites : healthArray) {
+            sprites.setSize(0.25f, 0.25f);
             sprites.setX(xPos);
             sprites.setY(yPos);
-            xPos+=0.25f;
+            xPos += 0.25f;
         }
     }
 
@@ -119,11 +119,13 @@ public class AlienWarlord {
         return warlordHealth;
     }
 
-    public Array<Sprite> getHealthArray(){
+    public Array<Sprite> getHealthArray() {
         return healthArray;
     }
 
-    public void removeHealth(){
-        healthArray.removeIndex(healthArray.size-1);
+    public void removeHealth() {
+        if (healthArray.size > 0) {
+            healthArray.removeIndex(healthArray.size - 1);
+        }
     }
 }
