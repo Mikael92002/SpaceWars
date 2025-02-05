@@ -73,12 +73,15 @@ public class GameScreen implements Screen {
     Array<Octopus> octopusArray;
     Array<Sprite> octopusLaserArray;
     int octopusLaserRotation = 1;
+    int overlordLaserRotation = 1;
     HashMap<Octopus, Rectangle> octopusRectangleHashMap;
     HashMap<Sprite, Rectangle> octopusLaserRectangle;
     float octopusSpawnTimer = 0f;
     private Texture octopusLaserTexture;
     private Sound octopusShot;
 
+    //octopusOverBoss:
+    OctopusOverboss overBoss
 
 
     public GameScreen(Galaga game) {
@@ -252,8 +255,8 @@ public class GameScreen implements Screen {
                 octopus.addShotTime();
 
                 if(octopus.shotTimer >= 2.5f){
-                    createOctopusFirstLaser(octopus.getOctopusSprite());
-                    createOctopusFirstLaser(octopus.getOctopusSprite());
+                    createOctopusLaser(octopus.getOctopusSprite());
+                    createOctopusLaser(octopus.getOctopusSprite());
                     octopusShot.play();
                     octopus.shotTimer = 0;
                     octopus.randomizeSpeed();
@@ -422,6 +425,8 @@ public class GameScreen implements Screen {
             alienWarlord.getRectangle().set(alienWarlord.getSprite().getX(), alienWarlord.getSprite().getY(), alienWarlord.getSprite().getWidth(), alienWarlord.getSprite().getHeight());
 
         }
+
+
     }
 
     public void backgroundLogic() {
@@ -625,17 +630,31 @@ public class GameScreen implements Screen {
         octopusRectangleHashMap.put(octopus, octopus.getOctopusHitBox());
         octopusArray.add(octopus);
     }
-    public void createOctopusFirstLaser(Sprite octopus){
+    public void createOctopusLaser(Sprite octopus){
         Sprite octopusLaser = new Sprite(octopusLaserTexture);
         octopusLaser.setSize(0.4f,0.4f);
         octopusLaser.setX(octopus.getX());
         octopusLaser.setY(octopus.getY()-octopus.getHeight());
         octopusLaser.setRotation(octopusLaserRotation*0.0001f);
         octopusLaserRotation*=-1;
-        Rectangle rectangle = new Rectangle(octopus.getX(), octopus.getY(), octopus.getWidth(), octopus.getHeight());
+        Rectangle rectangle = new Rectangle(octopusLaser.getX(), octopusLaser.getY(), octopusLaser.getWidth(), octopusLaser.getHeight());
 
         octopusLaserRectangle.put(octopusLaser, rectangle);
         octopusLaserArray.add(octopusLaser);
+    }
+
+    public void createOverBossLaser(Sprite sprite){
+        Sprite overBossLaser = new Sprite(new Texture(Gdx.files.internal("octopusBeam.png")));
+
+        overBossLaser.setSize(0.5f,0.5f);
+        overBossLaser.setX(sprite.getX());
+        overBossLaser.setY(sprite.getY()-sprite.getHeight());
+        overBossLaser.setRotation(0.00001f*overlordLaserRotation);
+        overlordLaserRotation*=-1;
+        Rectangle rectangle = new Rectangle(overBossLaser.getX(), overBossLaser.getY(), overBossLaser.getWidth(), overBossLaser.getHeight());
+
+        octopusLaserRectangle.put(overBossLaser, rectangle);
+        octopusLaserArray.add(overBossLaser);
     }
 
 }
