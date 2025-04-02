@@ -1,6 +1,6 @@
 # SpaceWars
 
-Controls are:
+Controls:
 - Keyboard Up = Shoot
 - Keyboard Left = Move Left
 - Keyboard Right = Move Right
